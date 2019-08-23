@@ -1,0 +1,12 @@
+{
+    "id": "mobile-sidebar",
+    "name": "Mobile sidebar",
+    "description": "Add toggle switch to show sidebar on mobile devices.",
+    "keywords": [
+    ],
+    "version": "0.1",
+    "humhub": {
+        "minVersion": "1.2"
+    },
+    "screenshots": ["assets/screen1.png"]
+}
