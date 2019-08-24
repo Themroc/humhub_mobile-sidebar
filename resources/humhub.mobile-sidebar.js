@@ -71,8 +71,7 @@ humhub.module('mobile_sidebar', function(module, require, $) {
 		if (sidebar.length) {
 			css(sidebar, 'sidebar');
 			sidebar.css('display', 'block');
-		} else
-			console.log('reset() sidebar not found.');
+		}
 		humhub.modules.mobile_sidebar.data.state= 0;
 	}
 
