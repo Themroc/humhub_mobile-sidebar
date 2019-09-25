@@ -1,15 +1,12 @@
 humhub.module('mobile_sidebar', function(module, require, $) {
-
-	var data= {
-		/*
+	var data;
+	/* = {
 		state:
 		 0 big screen
 		 1 small screen, no toggle needed
 		 2 small screen, toggle visible, content active
 		 3 small screen, toggle visible, sidebar active
-		*/
-		'state': 0,
-	};
+	}; */
 
 	/* there's probably a better way to do this... */
 	var media_rules= function(search1, search2) {
@@ -37,17 +34,31 @@ humhub.module('mobile_sidebar', function(module, require, $) {
 		}
 	}
 
+	var reset= function () {
+		var d= humhub.modules.mobile_sidebar.data;
+		var toggle= $('#mobile-sidebar-toggle');
+		toggle.hide();
+		toggle.removeClass('active');
+		$(d.parent).last().find(d.center).css('display', 'block');
+		var sidebar= $(d.parent).last().find(d.side);
+		if (sidebar.length) {
+			css(sidebar, 'sidebar');
+			sidebar.css('display', 'block');
+		}
+		humhub.modules.mobile_sidebar.data.state= 0;
+	}
+
 	var toggle= function () {
 		var d= humhub.modules.mobile_sidebar.data;
-		var sidebar= $(d.parent).find(d.side);
+		var sidebar= $(d.parent).last().find(d.side);
 		if (! sidebar.length) {
-			if (d.state==3)
+			if (d.state>=2)
 				reset();
 			return;
 		}
 
-		var content= $(d.parent).find(d.center);
-		var toggle= $('#space-sidebar-toggle');
+		var content= $(d.parent).last().find(d.center);
+		var toggle= $('#mobile-sidebar-toggle');
 		if (toggle.hasClass('active')) {
 			toggle.removeClass('active');
 			css(sidebar, 'sidebar');
@@ -63,40 +74,29 @@ humhub.module('mobile_sidebar', function(module, require, $) {
 		}
 	}
 
-	var reset= function () {
-		var d= humhub.modules.mobile_sidebar.data;
-		$('#space-sidebar-toggle').hide();
-		$(d.parent).find(d.center).css('display', 'block');
-		var sidebar= $(d.parent).find(d.side);
-		if (sidebar.length) {
-			css(sidebar, 'sidebar');
-			sidebar.css('display', 'block');
-		}
-		humhub.modules.mobile_sidebar.data.state= 0;
-	}
-
 	var resize= function () {
 		var d= humhub.modules.mobile_sidebar.data;
-		var sidebar= $(d.parent).find(d.side);
-		if (! sidebar.length) {
-			if (d.state==3)
+
+		if (d.url != window.location.href) {
+			d.url= window.location.href;
+			reset();
+		}
+
+		var sidebar= $(d.parent).last().children(d.side);
+		if (! sidebar.length || ! sidebar.children().first().length) {
+			if (d.state>=2)
 				reset();
 			return;
 		}
 
 		if (window.matchMedia(d.match).matches) {  // small screen
-			var newstate= $('.panel-default').find('.list-group:first').find('.list-group-item:first').hasClass('active') ? 2 : 1;
+			var newstate= sidebar.length ? 2 : 1;
 			if (newstate >= 2) {
-				var toggle= $('#space-sidebar-toggle');
+				var toggle= $('#mobile-sidebar-toggle');
 				if (toggle.length) {
 					toggle.show();
 				} else {
-					console.log('resize() add toggle button');
-					var menu= $('.panel-default').find('.list-group:first');
-					var style= 'position:absolute; right:10px; margin-left:10px';
-					menu.append('<a id="space-sidebar-toggle" class="list-group-item" style="' + style + '"'
-						+ ' onclick="humhub.modules.mobile_sidebar.toggle()">'
-						+ '<i class="fa fa-exchange"></i></a>');
+					console.log('mobile-sidebar error #1');
 				}
 			}
 			if (d.state<newstate)
@@ -120,23 +120,29 @@ humhub.module('mobile_sidebar', function(module, require, $) {
 				continue;
 
 			var d= {
+				'mobile': this.config.mobile,
+				'label': this.config.label,
+				'url': '',
 				'match': '(max-width:' + px[2] + 'px)',
-				'parent': '.space-content,.profile-content',
-				'center': '.col-md-7',
-				'side': '.col-md-3',
+				'parent': '#layout-content > .container > .row',
+				'center': '.col-md-7, .col-md-8',
+				'side': '.col-md-3, .col-md-4',
 				'state': 0,
 			}
 			humhub.modules.mobile_sidebar.data= d;
 
-			// this is how it should be:
-/*
-			resize();
-			$(window).on("resize", function (e) { humhub.modules.mobile_sidebar.resize() });
-			$('.panel-default').find('.list-group:first').on("onAnyChangeIncludingInChildren", function (e) { humhub.modules.mobile_sidebar.resize() });
-*/
+			var menu= $('#topbar-second').find('.container');
+			var style= 'padding-top:15px';
+			menu.append('<ul class="nav pull-right">'
+				+ '<li id="mobile-sidebar-toggle" class="dropdown search-menu" style="display:none">'
+				+ '<a style="padding-top:15px" aria-label="' + d.label + '" onclick="humhub.modules.mobile_sidebar.toggle()">'
+				+ '<i class="fa fa-exchange"></i>'
+				+ '</a></li></ul>');
 
 			// perverted hack alert!!!
 			run();
+
+			break;
 		}
 	};
 
@@ -145,5 +151,4 @@ humhub.module('mobile_sidebar', function(module, require, $) {
 		init: init,
 		toggle: toggle,
 	});
-
 });
